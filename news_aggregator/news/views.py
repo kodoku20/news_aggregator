@@ -33,7 +33,7 @@ def scrape_techcrunch(request):
 def scrape_wired(request):
     session = requests.Session()
     session.headers = {"User-Agent": "Googlebot/2.1 (+http://www.google.com/bot.html)"}
-    url = "https://www.wired.com/"
+    url = "https://www.wired.com"
 
     content = session.get(url).content
     soup = BeautifulSoup(content, "html.parser")
@@ -48,7 +48,7 @@ def scrape_wired(request):
 
             new_headline = HeadLine()
             new_headline.title = article_title
-            new_headline.url = article_href
+            new_headline.url = url + article_href
             new_headline.image = article_img
             new_headline.save()
         except:
@@ -69,7 +69,7 @@ def scrape_wired(request):
 
             new_headline = HeadLine()
             new_headline.title = article_title
-            new_headline.url = article_href
+            new_headline.url = 'https://www.nytimes.com' + article_href
             new_headline.image = article_img
             new_headline.save()
         except:
