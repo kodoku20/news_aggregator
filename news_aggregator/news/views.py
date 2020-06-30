@@ -3,79 +3,41 @@ from django.shortcuts import render, redirect
 from bs4 import BeautifulSoup
 from .models import HeadLine
 
+from . import scraper
+from .models import HeadLine
+
+
 requests.packages.urllib3.disable_warnings()
 
 
 def scrape(request):
+    """Фнкция для парсинга статей с сайтов"""
     session = requests.Session()
     session.headers = {"User-Agent": "Googlebot/2.1 (+http://www.google.com/bot.html)"}
-    # SCRAPE WIRED.COM
-    url = "https://www.wired.com"
+    # получаем ссылку на WIRED.COM и собираем оттуда статьи
+    url_wired = "https://www.wired.com"
 
-    content = session.get(url).content
-    soup = BeautifulSoup(content, "html.parser")
+    content = session.get(url_wired).content
+    soup_wired = BeautifulSoup(content, "html.parser")
 
-    for tag in soup.find_all("div", {"class": "card-component"}):
-        try:
-            tag_header = tag.find("li", {"class": "card-component__description"})
+    scraper.scrape_wired(soup_wired, url_wired)
 
-            article_title = tag_header.find("h2").get_text().strip()
-            article_href = url + tag_header.find_all("a")[0]['href']
-            article_img = tag.find("div", {"class": "image-group-component"}).find("img")["src"]
+    # получаем ссылку на NYTIMES.COM и собираем оттуда статьи
+    url_nytimes = "https://www.nytimes.com/section/world"
 
-            new_headline = HeadLine()
-            if not HeadLine.objects.filter(title=article_title):
-                new_headline.title = article_title
-                new_headline.url = article_href
-                new_headline.image = article_img
-                new_headline.save()
-        except:
-            continue
+    content = session.get(url_nytimes).content
+    soup_nytimes = BeautifulSoup(content, "html.parser")
 
-    # SCRAPE NYTIMES.COM
-    url = "https://www.nytimes.com/section/world"
+    scraper.scrape_nytimes(soup_nytimes, url_nytimes)
 
-    content = session.get(url).content
-    soup = BeautifulSoup(content, "html.parser")
+    # получаем ссылку на PITCHFORK.COM и собираем оттуда статьи
+    url_pitchfork = "https://pitchfork.com/news"
 
-    for tag in soup.find_all("li", {"class": "ekkqrpp3"}):
-        try:
-            tag_header = tag.find("h2", {"class": "css-y3otqb e134j7ei0"})
+    content = session.get(url_pitchfork).content
+    soup_pitchfork = BeautifulSoup(content, "html.parser")
 
-            article_title = tag_header.get_text().strip()
-            article_href = 'https://www.nytimes.com' + tag_header.find("a")["href"]
-            article_img = tag.find("figure", {"class": "photo"}).find("img")["src"]
-
-            new_headline = HeadLine()
-            if not HeadLine.objects.filter(title=article_title):
-                new_headline.title = article_title
-                new_headline.url = article_href
-                new_headline.image = article_img
-                new_headline.save()
-        except:
-            continue
-
-    # SCRAPE PITCHFORK.COM
-    url = "https://pitchfork.com/news"
-
-    content = session.get(url).content
-    soup = BeautifulSoup(content, "html.parser")
-
-    for tag in soup.find_all("div", {"class": "module"}):
-        try:
-            tag_header = tag.find("a", {"class": "title-link"})
-            article_title = tag_header.get_text().strip()
-            article_href = 'https://pitchfork.com' + tag_header['href']
-            article_img = tag.find("div", {"class": "image"}).find("img")["src"]
-
-            new_headline = HeadLine()
-            if not HeadLine.objects.filter(title=article_title):
-                new_headline.title = article_title
-                new_headline.url = article_href
-                new_headline.image = article_img
-                new_headline.save()
-        except:
-            continue
+    scraper.scrape_pitchfork(soup_pitchfork, url_pitchfork)
+    
     return redirect("../")
 
 
